@@ -1,0 +1,65 @@
+name: loki
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: loki-postgres
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-loki}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-loki_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-loki}
+    volumes:
+      - loki_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-loki} -d $${POSTGRES_DB:-loki}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: loki-redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - loki_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    container_name: loki-api
+    restart: unless-stopped
+    # uid/gid do host (linha user "line") para os arquivos em ./datasets
+    user: "${LOKI_UID:-10001}:${LOKI_GID:-10001}"
+    ports:
+      - "8100:8100"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: loki-postgres
+      REDIS_URL: redis://loki-redis:6379/0
+      LOKI_DATASETS_DIR: /data/datasets
+    volumes:
+      - ./datasets:/data/datasets
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health').read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  loki_pgdata:
+  loki_redisdata:

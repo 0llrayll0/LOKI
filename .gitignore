@@ -1,0 +1,18 @@
+.env
+__pycache__/
+.venv/
+node_modules/
+ml_artifacts/*
+datasets/*
+!.gitkeep
+.ruff_cache/
+
+# frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# caches
+.ruff_cache/
+.pytest_cache/
+__pycache__/
