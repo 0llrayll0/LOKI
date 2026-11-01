@@ -1,5 +1,7 @@
 # LOKI — Predictive Intelligence System
 
+![LOKI](docs/assets/logo.png)
+
 LOKI é uma plataforma de **inteligência preditiva** para análise, previsão e simulação de séries temporais. O foco é permitir que um analista leigo envie dados, prepare uma versão, gere previsões, detecte padrões, simule cenários e avalie riscos sem precisar escrever código.
 
 ## O que existe hoje
